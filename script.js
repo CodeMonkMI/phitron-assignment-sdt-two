@@ -3,7 +3,7 @@ let cart_items = [];
 
 let selected_item = {};
 
-async function fetchDrinksItem() {
+async function fetchDrinksItem(name = "margarita") {
   function dataTransformer(item) {
     return {
       id: item.idDrink,
@@ -15,10 +15,12 @@ async function fetchDrinksItem() {
     };
   }
 
-  return fetch("https://www.thecocktaildb.com/api/json/v1/1/search.php?f=m")
+  return fetch(
+    `https://www.thecocktaildb.com/api/json/v1/1/search.php?s=${name}`
+  )
     .then((r) => r.json())
     .then((data) => {
-      drinks_items = data.drinks.map(dataTransformer);
+      drinks_items = data?.drinks?.map(dataTransformer) || [];
     });
 }
 function addToCartHandler() {
@@ -45,7 +47,9 @@ function searchHandler() {
 
   searchBtn.addEventListener("click", function () {
     const key = searchInput.value;
+    cart_items = [];
     if (!key) return;
+    fetchDrinksItem(key).then(start);
   });
 }
 function updateCartCounter() {
@@ -66,6 +70,12 @@ function detailsHandler() {
 
 function renderDrinksItems() {
   const cardContainer = document.querySelector("#card_container");
+  if (drinks_items.length == 0) {
+    cardContainer.innerHTML = ` <h2 class="display-3 mt-5 pt-5 fw-bold w-100">
+              You requested data not found!
+            </h2>`;
+    return;
+  }
   const renderAbleHtml = drinks_items
     .map((item) => generateSingleDrinksItem(item))
     .join("");
@@ -106,24 +116,6 @@ function renderDrinksItems() {
   }
 }
 
-function openModal() {
-  const modal = new bootstrap.Modal(document.getElementById("drinkModal"), {
-    keyboard: false,
-  });
-  modal.show();
-}
-
-function renderModalData() {
-  document.getElementById("drinkModalLabel").innerHTML = selected_item.name;
-
-  document.getElementById("drinkModalAlcoholic").innerHTML =
-    selected_item.alcoholic;
-  document.getElementById("drinkModalCategory").innerHTML =
-    selected_item.category;
-  document.getElementById("drinkModalInstructions").innerHTML =
-    selected_item.instructions;
-}
-
 function renderCartItems() {
   const cartItemsContainer = document.getElementById("cartItemsContainer");
 
@@ -146,6 +138,24 @@ function renderCartItems() {
                   <td>${name}</td>
                 </tr>`;
   }
+}
+
+function openModal() {
+  const modal = new bootstrap.Modal(document.getElementById("drinkModal"), {
+    keyboard: false,
+  });
+  modal.show();
+}
+
+function renderModalData() {
+  document.getElementById("drinkModalLabel").innerHTML = selected_item.name;
+
+  document.getElementById("drinkModalAlcoholic").innerHTML =
+    selected_item.alcoholic;
+  document.getElementById("drinkModalCategory").innerHTML =
+    selected_item.category;
+  document.getElementById("drinkModalInstructions").innerHTML =
+    selected_item.instructions;
 }
 
 function start() {
